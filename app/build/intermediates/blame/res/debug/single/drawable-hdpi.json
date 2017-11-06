@@ -1,0 +1,42 @@
+[
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_size_sel.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_size_sel.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_seekbar_thumb.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_seekbar_thumb.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\video.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\video.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_size_nor.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_size_nor.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_play_nor.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_play_nor.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_pause_sel.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_pause_sel.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_play_sel.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_play_sel.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_launcher.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\visking.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\visking.png"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi\\ic_pause_nor.png",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_pause_nor.png"
+    }
+]

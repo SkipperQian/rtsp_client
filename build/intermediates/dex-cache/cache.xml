@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="E:\software\FFMPEG_RESP\RTSPFFMPEG\app\libs\android-async-http-1.4.4.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="3bae85a076241828810bf8fbcc12e5891d5fc34c">
+        <dex dex="E:\software\FFMPEG_RESP\RTSPFFMPEG\app\build\intermediates\transforms\dex\debug\folders\1000\2\android-async-http-1.4.4_ff6a192ae3ff7395e68be512cd63aba9dfd3118d\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="E:\software\test1\RTSPFFMPEG\app\libs\android-async-http-1.4.4.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="3bae85a076241828810bf8fbcc12e5891d5fc34c">
+        <dex dex="E:\software\test1\RTSPFFMPEG\app\build\intermediates\transforms\dex\debug\folders\1000\2\android-async-http-1.4.4_8fafc3c57885fc7a2a45bfb01a0938101bb39389\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="E:\software\FFMPEG_RESP\RTSPFFMPEG\app\build\intermediates\incremental-runtime-classes\debug\instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
+        <dex dex="E:\software\FFMPEG_RESP\RTSPFFMPEG\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run_eb30299d5e318f4b2581bd7afb8b416feabd47a4\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="E:\software\test1\RTSPFFMPEG\app\build\intermediates\incremental-runtime-classes\debug\instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
+        <dex dex="E:\software\test1\RTSPFFMPEG\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run_e75a84ef33ab711b871ec115ea54d1f3aa01f720\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="E:\software\FFMPEG_RESP\RTSPFFMPEG\app\build\intermediates\incremental-classes\debug\instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="2d1813170d73717a20981a058918afdba2e40374">
+        <dex dex="E:\software\FFMPEG_RESP\RTSPFFMPEG\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run-bootstrap_60d2fef1b7b78b030c7ca7ba9a50aa91cd7afb41\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="E:\software\test1\RTSPFFMPEG\app\build\intermediates\incremental-classes\debug\instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.0"
+        sha1="0ba844b72448bd4102a58d52c93ac8cdf92c29ff">
+        <dex dex="E:\software\test1\RTSPFFMPEG\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run-bootstrap_7d1374ca48e52fc8de4452cc03a7f1215c655daa\classes.dex" />
+    </item>
+
+</items>

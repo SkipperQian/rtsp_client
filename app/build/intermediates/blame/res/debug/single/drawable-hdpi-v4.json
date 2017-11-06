@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\ic_pause_selector.xml",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_pause_selector.xml"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\ic_play_selector.xml",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_play_selector.xml"
+    },
+    {
+        "merged": "E:\\software\\test1\\RTSPFFMPEG\\app\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi-v4\\ic_size_selector.xml",
+        "source": "E:\\software\\test1\\RTSPFFMPEG\\app\\src\\main\\res\\drawable-hdpi\\ic_size_selector.xml"
+    }
+]
