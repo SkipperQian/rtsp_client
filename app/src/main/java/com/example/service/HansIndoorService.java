@@ -6,7 +6,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -18,6 +21,8 @@ import com.example.rtstvlc.PlayRtspVideoActivity;
 import com.example.utils.ServiceUtil;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -33,6 +38,9 @@ public class HansIndoorService extends HansIntentService {
     private final static String SCREEN_ON = "2";//开屏
     private final static String USER_PRESENT = "3";//未锁屏
     private String mCurScreenState = SCREEN_ON;//当前屏幕状态
+
+    private BroadcastReceiver mTetherChangeReceiver;
+    private boolean mUsbConnected;
 
     private final static String PACKAGE_NAME = "com.example.rtstvlc";
 
@@ -62,10 +70,58 @@ public class HansIndoorService extends HansIntentService {
 
     }
 
+    private void setUsbTethering(boolean enabled) throws ClassNotFoundException {
+        ConnectivityManager cm =
+                (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        Method m;
+
+        Class c = Class.forName("android.net.ConnectivityManager");
+        try {
+            m = c.getMethod("setUsbTethering", new Class[]{boolean.class});
+            m.invoke(cm, enabled);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        Log.i(TAG, "setUsbTethering successfully!");
+    }
+
+    private class TetherChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context content, Intent intent) {
+            String action = intent.getAction();
+            Log.i(TAG, "TetherChangeReceiver: onReceive");
+            if (action.equals("android.hardware.usb.action.USB_STATE")) {
+                mUsbConnected = intent.getBooleanExtra("connected", false);
+                Log.i(TAG, "TetherChangeReceiver: android.hardware.usb.action.USB_STATE" + " mUsbConnected = " + mUsbConnected);
+
+                if (mUsbConnected == true) {
+                    try {
+                        setUsbTethering(mUsbConnected);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void onStart(Intent intent, int startId) {
         mScreenReceiver = new ScreenBroadcastReceiver();
         startScreenBroadcastReceiver();
+
+        //RequestPermissionOfWriteSettings();
+
+
+
+        mTetherChangeReceiver = new TetherChangeReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.hardware.usb.action.USB_STATE");
+        getApplicationContext().registerReceiver(mTetherChangeReceiver, filter);
         super.onStart(intent, startId);
     }
 
@@ -121,12 +177,9 @@ public class HansIndoorService extends HansIntentService {
                 String RcvMsg = new String(packetRcv.getData(), packetRcv.getOffset(), packetRcv.getLength());
                 if (!TextUtils.isEmpty(RcvMsg)) {
 
-                    //if (mCurScreenState == SCREEN_ON || mCurScreenState == SCREEN_OFF) {
+                    //if (mCurScreenState.equals(SCREEN_ON) || mCurScreenState.equals(SCREEN_OFF)) {
                     //    wakeAndUnlock(true);
                     //}
-                    if (mCurScreenState.equals(SCREEN_ON) || mCurScreenState.equals(SCREEN_OFF)) {
-                        wakeAndUnlock(true);
-                    }
 
                     //先注释掉，如果接收不到广播就启用这段代码直接关闭playRtsp界面
 //                    if (RcvMsg.equals(CallinConstant.HUNG_UP)) {
@@ -214,12 +267,12 @@ public class HansIndoorService extends HansIntentService {
                 // 开屏
                 Log.e(TAG, "锁屏状态：开屏");
                 mCurScreenState = SCREEN_ON;
-                //wakeAndUnlock(true);
+                wakeAndUnlock(true);
             } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
                 // 锁屏
                 Log.e(TAG, "锁屏状态：锁屏");
                 mCurScreenState = SCREEN_OFF;
-                //wakeAndUnlock(true);
+                wakeAndUnlock(true);
             } else if (Intent.ACTION_USER_PRESENT.equals(action)) {//用户界面
                 // 解锁
                 Log.e(TAG, "锁屏状态：解锁");//
@@ -278,5 +331,7 @@ public class HansIndoorService extends HansIntentService {
     public void onDestroy() {
         super.onDestroy();
 
+        getApplicationContext().unregisterReceiver(mTetherChangeReceiver);
+        mTetherChangeReceiver = null;
     }
 }

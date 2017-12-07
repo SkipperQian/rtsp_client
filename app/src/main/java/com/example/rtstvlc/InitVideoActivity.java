@@ -6,12 +6,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.hardware.usb.UsbManager;
+import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -27,18 +30,13 @@ import com.example.manager.ActivityControl;
 import com.example.manager.ActivityManager;
 import com.example.service.DaemonService;
 import com.example.service.HansIndoorService;
-import com.example.utils.FileWriterUtil;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class InitVideoActivity extends BaseActivity {
-
-
     protected static final String TAG = "InitVideoActivity";
     private Button btn_play;
-    private String mVideoPath = "rtsp://192.168.42.125";
     private PlayVideoReceiver mReceiver;
 
     public static boolean mIsBackGround = false;
@@ -48,6 +46,12 @@ public class InitVideoActivity extends BaseActivity {
     private final static int HANDER_SHOW_TIME = 3;
 
     //private UDPClient udpClient;
+    private void setWindowBrightness(int brightness) {
+        Window window = getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.screenBrightness = brightness / 255.0f;
+        window.setAttributes(lp);
+    }
 
     private Handler mHandler = new Handler() {
         @Override
@@ -56,10 +60,10 @@ public class InitVideoActivity extends BaseActivity {
                 case HANDER_PLAY_VIDEO:
                     Toast.makeText(InitVideoActivity.this, "开始播放", Toast.LENGTH_SHORT).show();
                     //playVideo();
+                    setWindowBrightness(255);
                     startActivity(new Intent(InitVideoActivity.this, PlayRtspVideoActivity.class));
                     break;
                 case HANDER_STOP_VIDEO:
-
                     Toast.makeText(InitVideoActivity.this, "播放结束", Toast.LENGTH_SHORT).show();
                     break;
                 case HANDER_SHOW_TIME://实时改变时间
@@ -102,6 +106,19 @@ public class InitVideoActivity extends BaseActivity {
         }
     }
 
+    public void RequestPermissionOfWriteSettings(){
+        Log.e(TAG, "Enable USB tethering !");
+
+        if (!Settings.System.canWrite(this)) {
+            Log.e(TAG, "request System.canWrite.");
+            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + this.getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } else {
+            Log.e(TAG, "request Permission WriteSettings successfully.");
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,14 +129,9 @@ public class InitVideoActivity extends BaseActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置全屏
 
         // this.getWindow().setFlags(FLAG_HOMEKEY_DISPATCHED, FLAG_HOMEKEY_DISPATCHED);//关键代码
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_init_video);
-
-        File dir  = new File("/storage/emulated/0/");
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
 
         // Log.e(TAG, "-----------onCreate-----------");
 
@@ -139,9 +151,10 @@ public class InitVideoActivity extends BaseActivity {
         tv_date = ((TextView) findViewById(R.id.tv_date));
         tv_time = ((TextView) findViewById(R.id.tv_time));
 
+        RequestPermissionOfWriteSettings();
+
         startService(new Intent(this, HansIndoorService.class));
         startService(new Intent(this, DaemonService.class));
-
 
         Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -158,7 +171,7 @@ public class InitVideoActivity extends BaseActivity {
                 startActivity(new Intent(InitVideoActivity.this, PlayRtspVideoActivity.class));
             }
         });
-
+        setWindowBrightness(0);
     }
 
     @Override
@@ -187,6 +200,8 @@ public class InitVideoActivity extends BaseActivity {
             //playVideo();
             Log.e(TAG, "[onResume]start play video !!! ");
             startActivity(new Intent(InitVideoActivity.this, PlayRtspVideoActivity.class));
+        } else {
+            setWindowBrightness(0);
         }
 
 

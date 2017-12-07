@@ -15,11 +15,109 @@
 
 #include <jni.h>
 #include <android/log.h>
+
+#define SYS_LOG_TAG "ffmpeg"
+#define LOG_FILE "/storage/emulated/0/indoor_log.txt"
+
+/*
 #define FFMPEG_VDEC "VDEC"
 #define LOGE(format, ...)  __android_log_print(ANDROID_LOG_ERROR, FFMPEG_VDEC, format, ##__VA_ARGS__)
 #define LOGI(format, ...)  __android_log_print(ANDROID_LOG_INFO,  FFMPEG_VDEC, format, ##__VA_ARGS__)
+*/
+
+#define LOGD(format, ...) av_log(NULL, AV_LOG_DEBUG, format, ##__VA_ARGS__);
+#define LOGV(format, ...) av_log(NULL, AV_LOG_VERBOSE, format, ##__VA_ARGS__);
+#define LOGI(format, ...) av_log(NULL, AV_LOG_INFO, format, ##__VA_ARGS__);
+#define LOGW(format, ...) av_log(NULL, AV_LOG_WARNING, format, ##__VA_ARGS__);
+#define LOGE(format, ...) av_log(NULL, AV_LOG_ERROR, format, ##__VA_ARGS__);
+
+#define ALOG(level, TAG, ...)    ((void)__android_log_vprint(level, TAG, __VA_ARGS__))
 
 #define RTSP_TIMEOUT 2000000
+
+void GetCurLocalTime(char *buf)
+{
+    time_t timer;
+    struct tm *t;
+
+    timer = time(NULL);
+    t = localtime(&timer);
+    strcpy(buf, asctime(t));
+}
+
+static void syslog_print(void *ptr, int level, const char *fmt, va_list vl)
+{
+    switch(level) {
+    case AV_LOG_DEBUG:
+        ALOG(ANDROID_LOG_VERBOSE, SYS_LOG_TAG, fmt, vl);
+        break;
+    case AV_LOG_VERBOSE:
+        ALOG(ANDROID_LOG_DEBUG, SYS_LOG_TAG, fmt, vl);
+        break;
+    case AV_LOG_INFO:
+        ALOG(ANDROID_LOG_INFO, SYS_LOG_TAG, fmt, vl);
+        break;
+    case AV_LOG_WARNING:
+        ALOG(ANDROID_LOG_WARN, SYS_LOG_TAG, fmt, vl);
+        break;
+    case AV_LOG_ERROR:
+        ALOG(ANDROID_LOG_ERROR, SYS_LOG_TAG, fmt, vl);
+        break;
+    }
+    //save_log(fmt);
+
+    //if (level > AV_LOG_WARNING)
+    //    return;
+#if 0
+    char log_buf[256] = {0};
+    char curtime[64] = {0};
+    char saved_log[512] = {0};
+    FILE *logfp = NULL;
+    //va_list args;
+
+    logfp = fopen(LOG_FILE, "a+");
+    if (logfp == NULL) {
+        return;
+    }
+
+    GetCurLocalTime(curtime);
+    //va_start(args, log_buf);
+    vsnprintf(log_buf, 256, fmt, vl);
+    //va_end(args);
+    strncpy(saved_log, curtime, strlen(curtime) - 1);
+    strcat(saved_log, ">>>  ");
+    strcat(saved_log, log_buf);
+    fwrite(saved_log, 1, strlen(saved_log), logfp);
+
+    fclose(logfp);
+#endif
+}
+
+static int fill_pic(ANativeWindow *win, ANativeWindow_Buffer *buf, AVFrame *rgba_frame, int height)
+{
+    if (ANativeWindow_lock(win, buf, 0) != 0) {
+        ANativeWindow_release(win);
+        return -1;
+    }
+
+    // 获取stride
+    uint8_t * dst = buf->bits;
+    int dstStride = buf->stride * 4;
+    uint8_t * src = (uint8_t*) (rgba_frame->data[0]);
+    int srcStride = rgba_frame->linesize[0];
+
+    // 由于window的stride和帧的stride不同,因此需要逐行复制
+    int h;
+    for (h = 0; h < height; h++) {
+        memcpy(dst + h * dstStride, src + h * srcStride, srcStride);
+    }
+    if (ANativeWindow_unlockAndPost(win) != 0) {
+        ANativeWindow_release(win);
+        return -1;
+    }
+
+    return 0;
+}
 
 static volatile int playingFlag = 0;
 static struct timeval startTime;
@@ -36,7 +134,7 @@ static int PlayInterruptCallBack(void *ctx)
 
     gettimeofday(&endTime, NULL);
     usedTime = (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec);
-    LOGE("usedTime:%ld", usedTime);
+    //LOGE("usedTime:%ld", usedTime);
 
     if (usedTime > RTSP_TIMEOUT)
         return 1;
@@ -64,11 +162,15 @@ AVFormatContext *pFormatCtx = NULL;
     int i = 0;
     int videoindex = 0;
     int resultReadFrame = 0;
+    int got_picture = 0;
 
     sprintf(videoPath,"%s",(*env)->GetStringUTFChars(env,path, NULL));
 
     av_register_all();
     avformat_network_init();
+
+    //av_log_set_callback(syslog_print);
+    //av_log_set_level(AV_LOG_WARNING);
 
     playingFlag = 1;
 
@@ -78,7 +180,7 @@ AVFormatContext *pFormatCtx = NULL;
         return -1;
     }
 
-    LOGE("Open stream:%s successfully !!!", videoPath);
+    LOGE("Open stream:%s successfully !!!\n", videoPath);
     if(avformat_find_stream_info(pFormatCtx,NULL)<0) {
         LOGE("Couldn't find stream information.\n");
         return -1;
@@ -103,7 +205,7 @@ AVFormatContext *pFormatCtx = NULL;
     }
 
     if(avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
-        LOGE("Could not open codec.");
+        LOGE("Could not open codec.\n");
         return -1; // Could not open codec
     }
     // 获取native window
@@ -124,7 +226,7 @@ AVFormatContext *pFormatCtx = NULL;
     // 用于渲染
     pFrameRGBA = av_frame_alloc();
     if (pvFrame == NULL || pFrameRGBA == NULL) {
-         LOGE("Could not allocate video frame.");
+         LOGE("Could not allocate video frame.\n");
          return -1;
     }
 
@@ -147,49 +249,33 @@ AVFormatContext *pFormatCtx = NULL;
         }
         gettimeofday(&startTime, NULL);
         if ((ret = av_read_frame(pFormatCtx, &packet)) >= 0) {
-            //gettimeofday(&endTime, NULL);
-
-            //LOGE("time dif is %ld", (endTime.tv_sec - startTime.tv_sec) * 1000000 + (endTime.tv_usec - startTime.tv_usec));
-            // Is this a packet from the video stream?
+            if (packet.losspkt_flag) {
+                LOGE("av_read_frame: loss pkt\n");
+                 av_packet_unref(&packet);
+                 continue;
+            }
             if(packet.stream_index == videoindex) {
-                ret = avcodec_send_packet(pCodecCtx, &packet);
+                ret = avcodec_decode_video2(pCodecCtx, pvFrame, &got_picture, &packet);
                 if (ret < 0) {
-                    LOGE("Error while sending a packet to the decoder. ret=%d(%s)", ret, av_err2str(ret));
+                    av_packet_unref(&packet);
+                    LOGE("avcodec_decode_video2 error! ret=%d(%s)\n", ret, av_err2str(ret));
                     break;
+
                 }
-                while (ret >= 0) {
-                    ret = avcodec_receive_frame(pCodecCtx, pvFrame);
-                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                        break;
-                    } else if (ret < 0) {
-                        LOGE("Error while receiving a frame from the decoder. ret=%d(%s)", ret, av_err2str(ret));
-                        goto EXIT_DEC;
-                    }
-                    if (ret >= 0) {
+                if (got_picture) {
+                //if (packet.losspkt_flag == 0 || (pvFrame->key_frame && pvFrame->pict_type == AV_PICTURE_TYPE_I)) {
+                    if (pvFrame->key_frame && pvFrame->pict_type == AV_PICTURE_TYPE_I) {
                         sws_scale(sws_ctx, (uint8_t const * const *)pvFrame->data,
                                   pvFrame->linesize, 0, pCodecCtx->height,
                                   pFrameRGBA->data, pFrameRGBA->linesize);
-                        if (ANativeWindow_lock(nativeWindow, &windowBuffer, 0) != 0) {
-                            goto EXIT_DEC;
-                        }
-
-                        // 获取stride
-                        uint8_t * dst = windowBuffer.bits;
-                        int dstStride = windowBuffer.stride * 4;
-                        uint8_t * src = (uint8_t*) (pFrameRGBA->data[0]);
-                        int srcStride = pFrameRGBA->linesize[0];
-
-                        // 由于window的stride和帧的stride不同,因此需要逐行复制
-                        int h;
-                        for (h = 0; h < videoHeight; h++) {
-                            memcpy(dst + h * dstStride, src + h * srcStride, srcStride);
-                        }
-                        if (ANativeWindow_unlockAndPost(nativeWindow) != 0) {
-                            goto EXIT_DEC;
+                        if (fill_pic(nativeWindow, &windowBuffer, pFrameRGBA, videoHeight) != 0) {
+                            av_frame_unref(pvFrame);
+                            av_packet_unref(&packet);
+                            break;
                         }
                     }
-                    av_frame_unref(pvFrame);
                 }
+                av_frame_unref(pvFrame);
             }
             av_packet_unref(&packet);
         } else {
@@ -198,8 +284,8 @@ AVFormatContext *pFormatCtx = NULL;
     }
 
 
-EXIT_DEC:
-    ANativeWindow_release(nativeWindow);
+//EXIT_DEC:
+    //ANativeWindow_release(nativeWindow);
 
     av_free(buffer);
     av_free(pFrameRGBA);
@@ -214,7 +300,7 @@ EXIT_DEC:
     avformat_close_input(&pFormatCtx);
 
     if (ret < 0 && ret != AVERROR_EOF) {
-        LOGE("Decode failed with error ret:%d(%s)", ret, av_err2str(ret));
+        LOGE("Decode failed with error ret:%d(%s)\n", ret, av_err2str(ret));
     }
 
     playingFlag = 0;

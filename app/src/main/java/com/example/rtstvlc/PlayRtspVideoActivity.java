@@ -134,7 +134,9 @@ public class PlayRtspVideoActivity extends BaseActivity implements SurfaceHolder
                     @Override
                     public void run() {
                         mPlayThreadFlag = 1;
+                        //setWindowBrightness(255);
                         VideoPlayer.play(mVideoPath, mSurfaceHolder.getSurface());
+
                         finish();
                         mPlayThreadFlag = 0;
                     }
@@ -198,8 +200,6 @@ public class PlayRtspVideoActivity extends BaseActivity implements SurfaceHolder
 
                     break;
                 case HANDLER_VIDEO_STOP://通话结束
-
-
                     Toast.makeText(PlayRtspVideoActivity.this, "通话结束", Toast.LENGTH_SHORT).show();
                     finish();
                     break;
@@ -359,5 +359,12 @@ public class PlayRtspVideoActivity extends BaseActivity implements SurfaceHolder
             }
 
         }
+    }
+
+    private void setWindowBrightness(int brightness) {
+        Window window = getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.screenBrightness = brightness / 255.0f;
+        window.setAttributes(lp);
     }
 }
